@@ -1,0 +1,46 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+  displayName: 'Install Node.js'
+
+- task: Bash@3
+  displayName: 'Install allurectl'
+  inputs:
+    targetType: 'inline'
+    script: |
+      # wget https://github.com/allure-framework/allurectl/releases/latest/download/allurectl_linux_amd64 -O ./allurectl
+      wget https://github.com/allure-framework/allurectl/releases/download/2.15.1/allurectl_linux_amd64 -O ./allurectl
+      chmod +x ./allurectl
+
+  - script: |
+    npm install
+    ./allurectl watch -- npm run --alluredir=$(ALLURE_RESULTS) || true
+    printenv | grep "ALLURE_"
+    printenv | grep "TEST_"
+    printenv | grep "AZURE_"
+    echo "All variables"
+    printenv
+
+  displayName: 'npm install and build'
+  env:
+    ALLURE_ENDPOINT: https://testing.qatools.cloud/
+    ALLURE_PROJECT_ID: 1201
+    ALLURE_TOKEN: $(ALLURE_TOKEN)
+    ALLURE_RESULTS: $(ALLURE_RESULTS)
+    ALLURE_LAUNCH_NAME: "$(Build.DefinitionName)-$(Build.BuildNumber)"
+    TEST_BRANCH: $(Build.SourceBranchName)
+    ALLURE_LAUNCH_TAGS: "$(Build.SourceBranchName), azure"
+    AZURE_BROWSER: $(AZURE_BROWSER)
+    AZURE_HOST: $(AZURE_HOST)

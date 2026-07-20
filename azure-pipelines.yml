@@ -21,7 +21,7 @@ steps:
 
   - script: |
       npm install
-      ./allurectl watch -- npm run --alluredir="$(ALLURE_RESULTS)" || true
+      ./allurectl watch -- ./gradlew clean test
       printenv | grep "ALLURE_" || true
       printenv | grep "TEST_" || true
       printenv | grep "AZURE_" || true
